@@ -1,45 +1,45 @@
-# Beitragen zu Repoan-CLI 🤝
+# Contributing to Repoan-CLI 🤝
 
-Vielen Dank für dein Interesse, Repoan zu verbessern! Jede Hilfe ist willkommen – von Bug-Reports bis hin zu neuen Features.
+Thank you for your interest in improving Repoan! All help is welcome – from bug reports to new features.
 
-## 🛠️ Entwicklungseinrichtung
+## 🛠️ Development Setup
 
-1. **Go installieren:** Version 1.22 oder höher wird empfohlen.
-2. **Repository klonen:**
+1. **Install Go:** Version 1.22 or higher is recommended.
+2. **Clone the repository:**
    ```bash
    git clone https://github.com/repoan/repoan.git
    cd repoan
    ```
-3. **Abhängigkeiten installieren:**
+3. **Install dependencies:**
    ```bash
    go mod tidy
    ```
-4. **Bauen:**
+4. **Build:**
    ```bash
    go build -o repoan .
    ```
 
-## 🧪 Tests ausführen
+## 🧪 Running Tests
 
-Wir legen großen Wert auf Stabilität. Bitte stelle sicher, dass alle Tests bestehen:
+We value stability. Please ensure all tests pass:
 ```bash
 go test -v ./...
 ```
 
-## 📝 Pull Request Prozess
+## 📝 Pull Request Process
 
-1. Erstelle einen **Feature-Branch** (`git checkout -b feature/mein-tolles-feature`).
-2. Implementiere deine Änderungen und füge **Unit-Tests** hinzu.
-3. Dokumentiere neue Funktionen im `README.md` oder in den `docs/`.
-4. Sende einen **Pull Request** gegen den `main` Branch.
+1. Create a **feature branch** (`git checkout -b feature/my-cool-feature`).
+2. Implement your changes and add **unit tests**.
+3. Document new features in `README.md` or in `docs/`.
+4. Submit a **Pull Request** against the `main` branch.
 
-## 🐛 Issues melden
+## 🐛 Reporting Issues
 
-Wenn du einen Fehler findest oder einen Verbesserungsvorschlag hast, erstelle bitte ein [Issue](https://github.com/repoan/repoan/issues) mit:
-- Einer klaren Beschreibung.
-- Schritten zur Reproduktion (bei Fehlern).
-- Erwartetes vs. tatsächliches Verhalten.
+If you find a bug or have a suggestion for improvement, please create an [issue](https://github.com/repoan/repoan/issues) with:
+- A clear description.
+- Steps to reproduce (for bugs).
+- Expected vs. actual behavior.
 
 ---
 
-Vielen Dank, dass du Teil der Repoan-Community bist!
+Thank you for being part of the Repoan community!

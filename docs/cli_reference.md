@@ -1,73 +1,73 @@
-# CLI Referenz 📖
+# CLI Reference 📖
 
-Detaillierte Übersicht aller verfügbaren Befehle und Flags in Repoan.
+Detailed overview of all available commands and flags in Repoan.
 
 ---
 
-## 🔝 Globale Flags
-Diese Flags können mit jedem Befehl verwendet werden:
+## 🔝 Global Flags
+These flags can be used with any command:
 
-- `--config <pfad>`: Pfad zur Konfigurationsdatei (Standard: `.repoan/config.yml`).
-- `--debug`: Aktiviert detaillierte Debug-Logs (Standard: `false`).
-- `-h, --help`: Hilfe zu einem Befehl anzeigen.
-- `-v, --version`: Versionsnummer anzeigen.
+- `--config <path>`: Path to the configuration file (default: `.repoan/config.yml`).
+- `--debug`: Enable detailed debug logging (default: `false`).
+- `-h, --help`: Show help for a command.
+- `-v, --version`: Show version number.
 
 ---
 
 ## 📂 `repoan init`
-Initialisiert Repoan in einem neuen Repository.
+Initializes Repoan in a new repository.
 
 ### Flags:
-- `-f, --force`: Erzwingt das Überschreiben bestehender Konfigurationsdateien.
+- `-f, --force`: Force overwrite existing configuration files.
 
-### Effekt:
-Erstellt den `.repoan/` Ordner mit `config.yml` und `baseline.json` und aktualisiert die `.gitignore`.
+### Effect:
+Creates the `.repoan/` folder with `config.yml` and `baseline.json` and updates `.gitignore`.
 
 ---
 
-## 🌳 `repoan tree [pfad]`
-Scannt das Verzeichnis und gibt eine Baumstruktur aus.
+## 🌳 `repoan tree [path]`
+Scans the directory and outputs a tree structure.
 
-### Argumente:
-- `[pfad]`: Startverzeichnis für den Scan (Standard: Git-Root oder aktuelles Verzeichnis).
+### Arguments:
+- `[path]`: Starting directory for the scan (default: Git root or current directory).
 
 ### Flags:
-- `-d, --max-depth <int>`: Maximale Tiefe des Scans.
-- `-f, --format <string>`: Ausgabeformat: `txt`, `md`, `json`.
-- `-i, --ignore <strings>`: Liste von Ignore-Mustern.
-- `-o, --out <pfad>`: Schreibt die Ausgabe in eine Datei statt in die Konsole.
-- `--here`: Scannt ab dem aktuellen Ordner, statt den Git-Root zu suchen.
-- `--respect-gitignore <bool>`: Ob `.gitignore` Dateien beachtet werden sollen (Standard: `true`).
+- `-d, --max-depth <int>`: Maximum depth of the scan.
+- `-f, --format <string>`: Output format: `txt`, `md`, `json`.
+- `-i, --ignore <strings>`: List of ignore patterns.
+- `-o, --out <path>`: Write the output to a file instead of the console.
+- `--here`: Scan starting from the current folder instead of searching for the Git root.
+- `--respect-gitignore <bool>`: Whether to respect `.gitignore` files (default: `true`).
 
 ---
 
-## 📸 `repoan snapshot [pfad]`
-Erstellt einen detaillierten JSON-Snapshot des Repositories.
+## 📸 `repoan snapshot [path]`
+Creates a detailed JSON snapshot of the repository.
 
 ### Flags:
-- `-o, --out <pfad>`: Dateiname für den Snapshot (Standard: `repoan.snapshot.json`).
-- `--here`: Scannt ab dem aktuellen Ordner.
+- `-o, --out <path>`: Filename for the snapshot (default: `repoan.snapshot.json`).
+- `--here`: Scan starting from the current folder.
 
 ---
 
-## 🔍 `repoan analyze [pfad]`
-Führt Sicherheits- und Hygiene-Checks durch.
+## 🔍 `repoan analyze [path]`
+Performs security and hygiene checks.
 
 ### Flags:
-- `-f, --format <string>`: Ausgabeformat: `text`, `json`, `sarif`.
-- `-o, --out <pfad>`: Schreibt Ergebnisse in eine Datei.
-- `--fail-on <severity>`: Bricht den Befehl mit Exit-Code 1 ab, wenn Findings mit dieser Severity gefunden werden (`info`, `warning`, `high`, `critical`).
+- `-f, --format <string>`: Output format: `text`, `json`, `sarif`.
+- `-o, --out <path>`: Write results to a file.
+- `--fail-on <severity>`: Exit with code 1 if findings with this severity are found (`info`, `warning`, `high`, `critical`).
 
 ---
 
 ## 🚪 Exit Codes
-Repoan nutzt folgende Exit-Codes für die Automatisierung:
+Repoan uses the following exit codes for automation:
 
-| Code | Bedeutung |
+| Code | Meaning |
 | --- | --- |
-| 0 | Erfolg (keine Probleme gefunden) |
-| 1 | Findings über dem Schwellenwert (`--fail-on`) gefunden |
-| 2 | Allgemeiner Fehler |
-| 3 | Nutzungsfehler (falsche Flags/Argumente) |
-| 4 | Dateisystemfehler |
-| 5 | Kein Git-Repository gefunden |
+| 0 | Success (no issues found) |
+| 1 | Findings found above threshold (`--fail-on`) |
+| 2 | General error |
+| 3 | Usage error (wrong flags/arguments) |
+| 4 | Filesystem error |
+| 5 | No Git repository found |

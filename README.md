@@ -4,79 +4,79 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Release](https://img.shields.io/github/v/release/repoan/repoan)](https://github.com/repoan/repoan/releases)
 
-**Repoan** ist ein professionelles, schnelles und plattformübergreifendes CLI-Tool zur Snapshot-Erstellung von Verzeichnisstrukturen und zur Repository-Analyse. Es hilft Entwicklern und Teams dabei, Codebases zu dokumentieren, Repository-Kontexte für LLMs vorzubereiten und Sicherheits- sowie Hygiene-Checks in CI/CD-Pipelines zu integrieren.
+**Repoan** is a professional, fast, and cross-platform CLI tool for directory structure snapshots and repository analysis. It helps developers and teams document codebases, prepare repository contexts for LLMs, and integrate security and hygiene checks into CI/CD pipelines.
 
-> 💡 **Repoan ist leichtgewichtig, sprachagnostisch und offline-first.** Es dient als effizienter Pre-Scanner für lokale Entwicklung und CI/CD-Gates, ohne Vendor Lock-in oder SaaS-Zwang.
+> 💡 **Repoan is lightweight, language-agnostic, and offline-first.** It serves as an efficient pre-scanner for local development and CI/CD gates, without vendor lock-in or SaaS requirements.
 
 ---
 
 ## ✨ Features
 
-- **Repository-Aware Scanning:** Automatische Erkennung des Git-Roots.
-- **Intelligentes Filtern:** Berücksichtigt `.gitignore` und benutzerdefinierte Ignore-Muster aus `.repoan/config.yml`.
-- **Flexible Formate:** Ausgabe der Verzeichnisstruktur als Text, Markdown oder JSON.
-- **Repository Snapshots:** Erstellung detaillierter JSON-Snapshots inklusive Dateigrößen und Metadaten.
-- **Integrierte Analyse:**
-    - **Security:** Erkennt sensible Dateien (z.B. `.env`, `.pem`, Keys).
-    - **Hygiene:** Identifiziert zu große Dateien oder Binaries.
-- **CI/CD Ready:** Exportiert Ergebnisse im **SARIF-Format** (nativ unterstützt von GitHub Code Scanning) und bietet `--fail-on` Schwellenwerte.
-- **Zentralisierte Konfiguration:** Alles sauber in einem `.repoan/` Verzeichnis organisiert.
-- **Deterministisch:** Identische Repositories erzeugen identische Ergebnisse – perfekt für Stable-CI.
+- **Repository-Aware Scanning:** Automatically detects the Git root.
+- **Intelligent Filtering:** Respects `.gitignore` and custom ignore patterns from `.repoan/config.yml`.
+- **Flexible Formats:** Output directory structures as Text, Markdown, or JSON.
+- **Repository Snapshots:** Create detailed JSON snapshots including file sizes and metadata.
+- **Integrated Analysis:**
+    - **Security:** Detects sensitive files (e.g., `.env`, `.pem`, private keys).
+    - **Hygiene:** Identifies oversized files or binaries.
+- **CI/CD Ready:** Exports results in **SARIF format** (natively supported by GitHub Code Scanning) and provides `--fail-on` thresholds.
+- **Centralized Configuration:** Everything neatly organized in a `.repoan/` directory.
+- **Deterministic:** Identical repositories produce identical results – perfect for stable CI.
 
 ---
 
 ## 🚀 Installation
 
-### 1. Via Go (für Entwickler)
-```powershell
+### 1. Via Go (for developers)
+```bash
 go install github.com/repoan/repoan@latest
 ```
-Stelle sicher, dass dein `GOPATH/bin` in deinem System-PATH enthalten ist.
+Ensure that your `GOPATH/bin` is in your system PATH.
 
 ### 2. Binaries (Windows, macOS, Linux)
-Lade das passende Binary für dein System von der [Releases-Seite](https://github.com/repoan/repoan/releases) herunter und füge es zu deinem PATH hinzu.
+Download the appropriate binary for your system from the [Releases page](https://github.com/repoan/repoan/releases) and add it to your PATH.
 
 ---
 
-## 🛠️ Erste Schritte
+## 🛠️ Getting Started
 
-### Initialisierung
-Bereite dein Repository für Repoan vor. Dies erstellt einen `.repoan/` Ordner mit Standardeinstellungen.
-```powershell
+### Initialization
+Prepare your repository for Repoan. This creates a `.repoan/` folder with default settings.
+```bash
 repoan init
 ```
 
-### Verzeichnisstruktur anzeigen (Tree)
-```powershell
-# Standard Baumansicht (respektiert .gitignore)
+### Show Directory Structure (Tree)
+```bash
+# Standard tree view (respects .gitignore)
 repoan tree
 
-# Als Markdown für Dokumentationen
+# As Markdown for documentation
 repoan tree --format md
 
-# Begrenzte Tiefe
+# Limited depth
 repoan tree --max-depth 2
 ```
 
-### Repository Snapshot erstellen
-```powershell
+### Create Repository Snapshot
+```bash
 repoan snapshot --out repo-snapshot.json
 ```
 
-### Analyse ausführen
-```powershell
-# Schnell-Check (Textausgabe)
+### Run Analysis
+```bash
+# Quick check (text output)
 repoan analyze
 
-# Export für GitHub Code Scanning (SARIF)
+# Export for GitHub Code Scanning (SARIF)
 repoan analyze --format sarif --out results.sarif
 ```
 
 ---
 
-## ⚙️ Konfiguration (`.repoan/config.yml`)
+## ⚙️ Configuration (`.repoan/config.yml`)
 
-Repoan lässt sich über eine zentrale YAML-Datei steuern. Hier ein Beispiel:
+Repoan is controlled via a central YAML file. Example:
 
 ```yaml
 version: 1
@@ -101,7 +101,7 @@ output:
 
 ## 🤖 CI/CD Integration
 
-Repoan ist für den Einsatz in Pipelines optimiert. Beispiel für GitHub Actions:
+Repoan is optimized for pipeline usage. Example for GitHub Actions:
 
 ```yaml
 - name: Run Repoan Analysis
@@ -115,10 +115,10 @@ Repoan ist für den Einsatz in Pipelines optimiert. Beispiel für GitHub Actions
 
 ---
 
-## 🤝 Beitragen
+## 🤝 Contributing
 
-Wir freuen uns über Beiträge! Schau in unsere [CONTRIBUTING.md](CONTRIBUTING.md) für Details zum Entwicklungsprozess.
+Contributions are welcome! Check our [CONTRIBUTING.md](CONTRIBUTING.md) for details on the development process.
 
-## 📄 Lizenz
+## 📄 License
 
-Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe die [LICENSE](LICENSE) Datei für Details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
