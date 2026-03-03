@@ -1,0 +1,7 @@
+ignore_patterns:
+  - .git
+  - node_modules
+  - dist
+  - build
+  - .venv
+  - vendor
