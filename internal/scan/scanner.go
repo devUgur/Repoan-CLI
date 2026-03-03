@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/repoan/repoan/internal/model"
@@ -98,7 +99,29 @@ func Scan(opts ScanOptions) (*model.FileItem, error) {
 		return nil
 	})
 
+	if err == nil {
+		sortTree(rootNode)
+	}
+
 	return rootNode, err
+}
+
+func sortTree(node *model.FileItem) {
+	if len(node.Children) == 0 {
+		return
+	}
+
+	sort.Slice(node.Children, func(i, j int) bool {
+		// Dirs first, then files, both alphabetically
+		if node.Children[i].IsDir != node.Children[j].IsDir {
+			return node.Children[i].IsDir
+		}
+		return node.Children[i].Name < node.Children[j].Name
+	})
+
+	for _, child := range node.Children {
+		sortTree(child)
+	}
 }
 
 func addNode(root *model.FileItem, relPath string, isDir bool, size int64) {

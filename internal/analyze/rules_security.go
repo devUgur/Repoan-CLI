@@ -39,7 +39,7 @@ func (s *SecurityAnalyzer) analyzeRecursive(file *model.FileItem, sensitivePatte
 	for _, pattern := range sensitivePatterns {
 		if strings.Contains(file.Name, pattern) {
 			findings = append(findings, Finding{
-				RuleID:     "SEC-001",
+				RuleID:     "REP-SEC-001",
 				Message:    "Sensitive file detected",
 				Path:       file.Path,
 				Severity:   SeverityHigh,

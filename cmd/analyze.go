@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
+	"sync"
 	"time"
 
 	"github.com/repoan/repoan/internal/analyze"
@@ -60,7 +62,7 @@ var analyzeCmd = &cobra.Command{
 		// Determine which analyzers to run
 		var analyzers []analyze.Analyzer
 		enabledRules := Cfg.Analysis.EnabledRules
-		
+
 		for _, rule := range enabledRules {
 			switch rule {
 			case "security":
@@ -79,13 +81,40 @@ var analyzeCmd = &cobra.Command{
 		}
 
 		var allFindings []analyze.Finding
+		var findingsMutex sync.Mutex
+		var wg sync.WaitGroup
+		var errs []error
+		var errMutex sync.Mutex
+
 		for _, a := range analyzers {
-			findings, err := a.Analyze(context.Background(), snap)
-			if err != nil {
-				return err
-			}
-			allFindings = append(allFindings, findings...)
+			wg.Add(1)
+			go func(analyzer analyze.Analyzer) {
+				defer wg.Done()
+				findings, err := analyzer.Analyze(context.Background(), snap)
+				if err != nil {
+					errMutex.Lock()
+					errs = append(errs, err)
+					errMutex.Unlock()
+					return
+				}
+				findingsMutex.Lock()
+				allFindings = append(allFindings, findings...)
+				findingsMutex.Unlock()
+			}(a)
 		}
+		wg.Wait()
+
+		if len(errs) > 0 {
+			return errs[0]
+		}
+
+		// Sort findings for determinism
+		sort.Slice(allFindings, func(i, j int) bool {
+			if allFindings[i].Path != allFindings[j].Path {
+				return allFindings[i].Path < allFindings[j].Path
+			}
+			return allFindings[i].RuleID < allFindings[j].RuleID
+		})
 
 		format := analyzeFormat
 		if !cmd.Flags().Changed("format") {

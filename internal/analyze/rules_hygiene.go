@@ -3,6 +3,7 @@ package analyze
 import (
 	"context"
 	"fmt"
+
 	"github.com/repoan/repoan/internal/model"
 )
 
@@ -30,7 +31,7 @@ func (h *HygieneAnalyzer) analyzeRecursive(file *model.FileItem) []Finding {
 	// Large file check
 	if !file.IsDir && file.Size > h.MaxFileSize {
 		findings = append(findings, Finding{
-			RuleID:     "HYG-001",
+			RuleID:     "REP-HYG-001",
 			Message:    fmt.Sprintf("Large file detected (%d bytes)", file.Size),
 			Path:       file.Path,
 			Severity:   SeverityWarning,
