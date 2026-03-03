@@ -36,10 +36,6 @@ var analyzeCmd = &cobra.Command{
 			root = gitRoot
 		}
 
-		if !cmd.Flags().Changed("respect-gitignore") {
-			// Actually analyzeCmd doesn't have respect-gitignore flag yet, let's just use config
-		}
-
 		opts := scan.ScanOptions{
 			Root:             root,
 			RespectGitignore: Cfg.Scan.RespectGitignore,
@@ -80,7 +76,7 @@ var analyzeCmd = &cobra.Command{
 			}
 		}
 
-		var allFindings []analyze.Finding
+		var allFindings []model.Finding
 		var findingsMutex sync.Mutex
 		var wg sync.WaitGroup
 		var errs []error
@@ -137,8 +133,12 @@ var analyzeCmd = &cobra.Command{
 			formatted = sarif
 		case "md", "text":
 			// Human-friendly text output
+			if len(allFindings) == 0 {
+				fmt.Println("No findings found! ✨")
+				return nil
+			}
 			for _, f := range allFindings {
-				fmt.Printf("[%s] %s: %s\n  Path: %s\n  Suggestion: %s\n\n", f.Severity, f.RuleID, f.Message, f.Path, f.Suggestion)
+				fmt.Printf("[%s] %s: %s\n  Path: %s\n  Suggestion: %s\n\n", f.Severity, f.RuleID, f.Message, f.Path, f.Remediation)
 			}
 			return nil
 		}
@@ -163,7 +163,7 @@ var analyzeCmd = &cobra.Command{
 			for _, f := range allFindings {
 				if string(f.Severity) == failOn {
 					fmt.Printf("Failing because a finding with severity '%s' was detected.\n", failOn)
-					os.Exit(1)
+					os.Exit(ExitFindings)
 				}
 			}
 		}

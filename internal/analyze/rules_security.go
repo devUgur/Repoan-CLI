@@ -13,8 +13,8 @@ func (s *SecurityAnalyzer) Name() string {
 	return "security"
 }
 
-func (s *SecurityAnalyzer) Analyze(ctx context.Context, snap *model.Snapshot) ([]Finding, error) {
-	var findings []Finding
+func (s *SecurityAnalyzer) Analyze(ctx context.Context, snap *model.Snapshot) ([]model.Finding, error) {
+	var findings []model.Finding
 
 	// Patterns for sensitive files
 	sensitivePatterns := []string{
@@ -33,18 +33,22 @@ func (s *SecurityAnalyzer) Analyze(ctx context.Context, snap *model.Snapshot) ([
 	return findings, nil
 }
 
-func (s *SecurityAnalyzer) analyzeRecursive(file *model.FileItem, sensitivePatterns []string) []Finding {
-	var findings []Finding
+func (s *SecurityAnalyzer) analyzeRecursive(file *model.FileItem, sensitivePatterns []string) []model.Finding {
+	var findings []model.Finding
 
 	for _, pattern := range sensitivePatterns {
 		if strings.Contains(file.Name, pattern) {
-			findings = append(findings, Finding{
-				RuleID:     "REP-SEC-001",
-				Message:    "Sensitive file detected",
-				Path:       file.Path,
-				Severity:   SeverityHigh,
-				Suggestion: "Remove sensitive files from the repository and use environment variables or a secret manager.",
-			})
+			finding := model.Finding{
+				RuleID:      "REP-SEC-001",
+				Title:       "Sensitive File Detected",
+				Message:     "A file that may contain credentials or sensitive information was found.",
+				Path:        file.Path,
+				Severity:    model.SevHigh,
+				Category:    model.CatSecurity,
+				Remediation: "Remove sensitive files from the repository and use environment variables or a secret manager.",
+			}
+			finding.Fingerprint = model.FingerprintStable(finding.RuleID, finding.Path, 0, pattern)
+			findings = append(findings, finding)
 		}
 	}
 

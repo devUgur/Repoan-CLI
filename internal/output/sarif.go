@@ -2,96 +2,152 @@ package output
 
 import (
 	"encoding/json"
-	"github.com/repoan/repoan/internal/analyze"
+	"sort"
+	"time"
+
+	"github.com/repoan/repoan/internal/model"
 )
 
-// SarifReport is a basic SARIF structure.
-type SarifReport struct {
+type sarifLog struct {
 	Version string     `json:"version"`
-	Runs    []SarifRun `json:"runs"`
+	Schema  string     `json:"$schema"`
+	Runs    []sarifRun `json:"runs"`
 }
 
-type SarifRun struct {
-	Tool    SarifTool    `json:"tool"`
-	Results []SarifResult `json:"results"`
+type sarifRun struct {
+	Tool    sarifTool     `json:"tool"`
+	Results []sarifResult `json:"results,omitempty"`
 }
 
-type SarifTool struct {
-	Driver SarifDriver `json:"driver"`
+type sarifTool struct {
+	Driver sarifDriver `json:"driver"`
 }
 
-type SarifDriver struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
+type sarifDriver struct {
+	Name           string      `json:"name"`
+	InformationURI string      `json:"informationUri,omitempty"`
+	Version        string      `json:"version,omitempty"`
+	Rules          []sarifRule `json:"rules,omitempty"`
 }
 
-type SarifResult struct {
-	RuleID  string       `json:"ruleId"`
-	Message SarifMessage `json:"message"`
-	Level   string       `json:"level"`
-	Locations []SarifLocation `json:"locations"`
+type sarifRule struct {
+	ID               string        `json:"id"`
+	Name             string        `json:"name,omitempty"`
+	ShortDescription *sarifMessage `json:"shortDescription,omitempty"`
+	Help             *sarifMessage `json:"help,omitempty"`
 }
 
-type SarifMessage struct {
+type sarifResult struct {
+	RuleID     string          `json:"ruleId"`
+	Level      string          `json:"level,omitempty"`
+	Message    sarifMessage    `json:"message"`
+	Locations  []sarifLocation `json:"locations,omitempty"`
+	Properties map[string]any  `json:"properties,omitempty"`
+}
+
+type sarifLocation struct {
+	PhysicalLocation sarifPhysicalLocation `json:"physicalLocation"`
+}
+
+type sarifPhysicalLocation struct {
+	ArtifactLocation sarifArtifactLocation `json:"artifactLocation"`
+	Region           *sarifRegion          `json:"region,omitempty"`
+}
+
+type sarifArtifactLocation struct {
+	URI string `json:"uri"`
+}
+
+type sarifRegion struct {
+	StartLine   int `json:"startLine,omitempty"`
+	StartColumn int `json:"startColumn,omitempty"`
+}
+
+type sarifMessage struct {
 	Text string `json:"text"`
 }
 
-type SarifLocation struct {
-	PhysicalLocation SarifPhysicalLocation `json:"physicalLocation"`
+func severityToSarifLevel(s model.Severity) string {
+	switch s {
+	case model.SevHigh, model.SevCritical:
+		return "error"
+	case model.SevMedium:
+		return "warning"
+	default:
+		return "note"
+	}
 }
 
-type SarifPhysicalLocation struct {
-	ArtifactLocation SarifArtifactLocation `json:"artifactLocation"`
-}
+// FormatSarif generates a SARIF 2.1.0 string from findings.
+func FormatSarif(findings []model.Finding, toolName, toolVersion string) (string, error) {
+	ruleMap := map[string]sarifRule{}
+	results := make([]sarifResult, 0, len(findings))
 
-type SarifArtifactLocation struct {
-	Uri string `json:"uri"`
-}
+	for _, f := range findings {
+		if _, ok := ruleMap[f.RuleID]; !ok {
+			ruleMap[f.RuleID] = sarifRule{
+				ID:               f.RuleID,
+				Name:             f.Title,
+				ShortDescription: &sarifMessage{Text: f.Title},
+				Help:             &sarifMessage{Text: f.Remediation},
+			}
+		}
 
-func FormatSarif(findings []analyze.Finding, toolName, toolVersion string) (string, error) {
-	report := SarifReport{
+		loc := sarifLocation{
+			PhysicalLocation: sarifPhysicalLocation{
+				ArtifactLocation: sarifArtifactLocation{URI: model.NormalizePath(f.Path)},
+			},
+		}
+		if f.Line > 0 || f.Column > 0 {
+			loc.PhysicalLocation.Region = &sarifRegion{StartLine: f.Line, StartColumn: f.Column}
+		}
+
+		props := map[string]any{
+			"category":    string(f.Category),
+			"severity":    string(f.Severity),
+			"fingerprint": f.Fingerprint,
+			"generatedAt": time.Now().UTC().Format(time.RFC3339),
+		}
+
+		results = append(results, sarifResult{
+			RuleID: f.RuleID,
+			Level:  severityToSarifLevel(f.Severity),
+			Message: sarifMessage{
+				Text: f.Message,
+			},
+			Locations:  []sarifLocation{loc},
+			Properties: props,
+		})
+	}
+
+	rules := make([]sarifRule, 0, len(ruleMap))
+	for _, r := range ruleMap {
+		rules = append(rules, r)
+	}
+	// Sort rules by ID for determinism
+	sort.Slice(rules, func(i, j int) bool {
+		return rules[i].ID < rules[j].ID
+	})
+
+	log := sarifLog{
 		Version: "2.1.0",
-		Runs: []SarifRun{
+		Schema:  "https://json.schemastore.org/sarif-2.1.0.json",
+		Runs: []sarifRun{
 			{
-				Tool: SarifTool{
-					Driver: SarifDriver{
-						Name:    toolName,
-						Version: toolVersion,
+				Tool: sarifTool{
+					Driver: sarifDriver{
+						Name:           toolName,
+						Version:        toolVersion,
+						InformationURI: "https://github.com/repoan/repoan",
+						Rules:          rules,
 					},
 				},
-				Results: make([]SarifResult, 0, len(findings)),
+				Results: results,
 			},
 		},
 	}
 
-	for _, f := range findings {
-		level := "warning"
-		if f.Severity == analyze.SeverityHigh || f.Severity == analyze.SeverityCritical {
-			level = "error"
-		} else if f.Severity == analyze.SeverityInfo {
-			level = "note"
-		}
-
-		result := SarifResult{
-			RuleID: f.RuleID,
-			Message: SarifMessage{
-				Text: f.Message,
-			},
-			Level: level,
-			Locations: []SarifLocation{
-				{
-					PhysicalLocation: SarifPhysicalLocation{
-						ArtifactLocation: SarifArtifactLocation{
-							Uri: f.Path,
-						},
-					},
-				},
-			},
-		}
-		report.Runs[0].Results = append(report.Runs[0].Results, result)
-	}
-
-	data, err := json.MarshalIndent(report, "", "  ")
+	data, err := json.MarshalIndent(log, "", "  ")
 	if err != nil {
 		return "", err
 	}

@@ -6,6 +6,8 @@
 
 **Repoan** ist ein professionelles, schnelles und plattformübergreifendes CLI-Tool zur Snapshot-Erstellung von Verzeichnisstrukturen und zur Repository-Analyse. Es hilft Entwicklern und Teams dabei, Codebases zu dokumentieren, Repository-Kontexte für LLMs vorzubereiten und Sicherheits- sowie Hygiene-Checks in CI/CD-Pipelines zu integrieren.
 
+> 💡 **Repoan ist leichtgewichtig, sprachagnostisch und offline-first.** Es dient als effizienter Pre-Scanner für lokale Entwicklung und CI/CD-Gates, ohne Vendor Lock-in oder SaaS-Zwang.
+
 ---
 
 ## ✨ Features
@@ -19,6 +21,7 @@
     - **Hygiene:** Identifiziert zu große Dateien oder Binaries.
 - **CI/CD Ready:** Exportiert Ergebnisse im **SARIF-Format** (nativ unterstützt von GitHub Code Scanning) und bietet `--fail-on` Schwellenwerte.
 - **Zentralisierte Konfiguration:** Alles sauber in einem `.repoan/` Verzeichnis organisiert.
+- **Deterministisch:** Identische Repositories erzeugen identische Ergebnisse – perfekt für Stable-CI.
 
 ---
 

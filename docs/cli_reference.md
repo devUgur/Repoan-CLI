@@ -57,3 +57,17 @@ Führt Sicherheits- und Hygiene-Checks durch.
 - `-f, --format <string>`: Ausgabeformat: `text`, `json`, `sarif`.
 - `-o, --out <pfad>`: Schreibt Ergebnisse in eine Datei.
 - `--fail-on <severity>`: Bricht den Befehl mit Exit-Code 1 ab, wenn Findings mit dieser Severity gefunden werden (`info`, `warning`, `high`, `critical`).
+
+---
+
+## 🚪 Exit Codes
+Repoan nutzt folgende Exit-Codes für die Automatisierung:
+
+| Code | Bedeutung |
+| --- | --- |
+| 0 | Erfolg (keine Probleme gefunden) |
+| 1 | Findings über dem Schwellenwert (`--fail-on`) gefunden |
+| 2 | Allgemeiner Fehler |
+| 3 | Nutzungsfehler (falsche Flags/Argumente) |
+| 4 | Dateisystemfehler |
+| 5 | Kein Git-Repository gefunden |

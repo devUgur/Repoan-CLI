@@ -15,7 +15,7 @@ var doctorCmd = &cobra.Command{
 	Long:  `Performs self-diagnosis to ensure repoan is correctly configured in your repository.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("🩺 Running repoan health check...")
-		
+
 		allOk := true
 
 		// 1. Check Git Root
