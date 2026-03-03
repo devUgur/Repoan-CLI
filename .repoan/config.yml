@@ -1,0 +1,20 @@
+version: 1
+scan:
+    respect_gitignore: true
+    max_depth: 0
+    ignore:
+        - .git/
+        - node_modules/
+        - dist/
+        - build/
+        - target/
+        - .venv/
+        - vendor/
+output:
+    dir: .repoan/reports
+    default_format: md
+analysis:
+    enabled_rules:
+        - large-files
+        - security
+    fail_on: high

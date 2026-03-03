@@ -1,24 +1,30 @@
 package output
 
 import (
-	"github.com/repoan/repoan/internal/scan"
+	"encoding/json"
 	"strings"
+
+	"github.com/repoan/repoan/internal/model"
 )
 
-func FormatTree(node *scan.FileNode, format string) string {
+func FormatTree(node *model.FileItem, format string) string {
 	switch strings.ToLower(format) {
 	case "md":
 		return "```\n" + renderText(node, "", true, true) + "```"
 	case "json":
-		return "// TODO: Implement JSON format"
+		data, err := json.MarshalIndent(node, "", "  ")
+		if err != nil {
+			return "error marshaling to json"
+		}
+		return string(data)
 	default:
 		return renderText(node, "", true, true)
 	}
 }
 
-func renderText(node *scan.FileNode, prefix string, isLast bool, isRoot bool) string {
+func renderText(node *model.FileItem, prefix string, isLast bool, isRoot bool) string {
 	var sb strings.Builder
-	
+
 	if isRoot {
 		sb.WriteString(node.Name + "\n")
 		for i, child := range node.Children {
@@ -30,9 +36,9 @@ func renderText(node *scan.FileNode, prefix string, isLast bool, isRoot bool) st
 		if isLast {
 			connector = "└── "
 		}
-		
+
 		sb.WriteString(prefix + connector + node.Name + "\n")
-		
+
 		newPrefix := prefix
 		if isLast {
 			newPrefix += "    "
@@ -45,6 +51,6 @@ func renderText(node *scan.FileNode, prefix string, isLast bool, isRoot bool) st
 			sb.WriteString(renderText(child, newPrefix, isChildLast, false))
 		}
 	}
-	
+
 	return sb.String()
 }

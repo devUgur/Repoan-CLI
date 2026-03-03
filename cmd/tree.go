@@ -39,11 +39,28 @@ var treeCmd = &cobra.Command{
 			}
 		}
 
+		// Merge config and flags
+		ignorePatterns := treeIgnore
+		if len(ignorePatterns) == 0 {
+			ignorePatterns = Cfg.Scan.Ignore
+		}
+
+		maxDepth := treeMaxDepth
+		if maxDepth == 0 {
+			maxDepth = Cfg.Scan.MaxDepth
+		}
+
+		respectGitignore := treeRespectGitignore
+		// If flag was not explicitly set, use config
+		if !cmd.Flags().Changed("respect-gitignore") {
+			respectGitignore = Cfg.Scan.RespectGitignore
+		}
+
 		opts := scan.ScanOptions{
 			Root:             root,
-			IgnorePatterns:   treeIgnore,
-			MaxDepth:         treeMaxDepth,
-			RespectGitignore: treeRespectGitignore,
+			IgnorePatterns:   ignorePatterns,
+			MaxDepth:         maxDepth,
+			RespectGitignore: respectGitignore,
 		}
 
 		Logger.Debug("scanning directory", "options", opts)
@@ -52,15 +69,25 @@ var treeCmd = &cobra.Command{
 			return err
 		}
 
-		Logger.Debug("formatting output", "format", treeFormat)
-		formatted := output.FormatTree(tree, treeFormat)
+		format := treeFormat
+		if !cmd.Flags().Changed("format") {
+			format = Cfg.Output.DefaultFormat
+		}
 
-		if treeOut != "" {
-			err := os.WriteFile(treeOut, []byte(formatted), 0644)
+		Logger.Debug("formatting output", "format", format)
+		formatted := output.FormatTree(tree, format)
+
+		outputFile := treeOut
+		if outputFile == "" {
+			// If we want a default output file from config, we could add it here
+		}
+
+		if outputFile != "" {
+			err := os.WriteFile(outputFile, []byte(formatted), 0644)
 			if err != nil {
-				return fmt.Errorf("could not write output to %s: %w", treeOut, err)
+				return fmt.Errorf("could not write output to %s: %w", outputFile, err)
 			}
-			fmt.Printf("Tree structure written to %s\n", treeOut)
+			fmt.Printf("Tree structure written to %s\n", outputFile)
 		} else {
 			fmt.Println(formatted)
 		}
@@ -71,9 +98,9 @@ var treeCmd = &cobra.Command{
 
 func init() {
 	treeCmd.Flags().StringVarP(&treeOut, "out", "o", "", "Output file path (e.g., structure.txt)")
-	treeCmd.Flags().StringVarP(&treeFormat, "format", "f", "txt", "Output format (txt, md, json)")
+	treeCmd.Flags().StringVarP(&treeFormat, "format", "f", "", "Output format (txt, md, json)")
 	treeCmd.Flags().IntVarP(&treeMaxDepth, "max-depth", "d", 0, "Maximum depth to scan")
-	treeCmd.Flags().StringSliceVarP(&treeIgnore, "ignore", "i", []string{".git", "node_modules", "dist", "build", ".venv", "vendor"}, "Patterns to ignore")
+	treeCmd.Flags().StringSliceVarP(&treeIgnore, "ignore", "i", []string{}, "Patterns to ignore")
 	treeCmd.Flags().BoolVar(&treeRespectGitignore, "respect-gitignore", true, "Respect .gitignore files")
 	treeCmd.Flags().BoolVar(&treeHere, "here", false, "Start scanning from current directory instead of git root")
 

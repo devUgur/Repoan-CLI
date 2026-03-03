@@ -6,15 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/repoan/repoan/internal/model"
 	gitignore "github.com/sabhiram/go-gitignore"
 )
-
-type FileNode struct {
-	Name     string
-	Path     string
-	IsDir    bool
-	Children []*FileNode
-}
 
 type ScanOptions struct {
 	Root             string
@@ -23,7 +17,7 @@ type ScanOptions struct {
 	RespectGitignore bool
 }
 
-func Scan(opts ScanOptions) (*FileNode, error) {
+func Scan(opts ScanOptions) (*model.FileItem, error) {
 	rootAbs, err := filepath.Abs(opts.Root)
 	if err != nil {
 		return nil, err
@@ -37,7 +31,13 @@ func Scan(opts ScanOptions) (*FileNode, error) {
 		}
 	}
 
-	rootNode := &FileNode{
+	// Also use gitignore-style matching for manual ignore patterns
+	var customIgnoreMatcher *gitignore.GitIgnore
+	if len(opts.IgnorePatterns) > 0 {
+		customIgnoreMatcher = gitignore.CompileIgnoreLines(opts.IgnorePatterns...)
+	}
+
+	rootNode := &model.FileItem{
 		Name:  filepath.Base(rootAbs),
 		Path:  rootAbs,
 		IsDir: true,
@@ -79,18 +79,21 @@ func Scan(opts ScanOptions) (*FileNode, error) {
 			return nil
 		}
 
-		// Check ignore patterns
-		for _, pattern := range opts.IgnorePatterns {
-			if strings.Contains(relPath, pattern) {
-				if d.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
+		// Check custom ignore patterns
+		if customIgnoreMatcher != nil && customIgnoreMatcher.MatchesPath(matchPath) {
+			if d.IsDir() {
+				return filepath.SkipDir
 			}
+			return nil
+		}
+
+		info, err := d.Info()
+		if err != nil {
+			return err
 		}
 
 		// Add to tree
-		addNode(rootNode, relPath, d.IsDir())
+		addNode(rootNode, relPath, d.IsDir(), info.Size())
 
 		return nil
 	})
@@ -98,7 +101,7 @@ func Scan(opts ScanOptions) (*FileNode, error) {
 	return rootNode, err
 }
 
-func addNode(root *FileNode, relPath string, isDir bool) {
+func addNode(root *model.FileItem, relPath string, isDir bool, size int64) {
 	parts := strings.Split(relPath, string(filepath.Separator))
 	current := root
 
@@ -113,10 +116,17 @@ func addNode(root *FileNode, relPath string, isDir bool) {
 		}
 
 		if !found {
-			newNode := &FileNode{
-				Name:  part,
-				Path:  filepath.Join(current.Path, part),
-				IsDir: isDir && (i == len(parts)-1),
+			ext := ""
+			if !isDir || i < len(parts)-1 {
+				ext = filepath.Ext(part)
+			}
+
+			newNode := &model.FileItem{
+				Name:      part,
+				Path:      filepath.Join(current.Path, part),
+				IsDir:     isDir && (i == len(parts)-1),
+				Size:      size,
+				Extension: ext,
 			}
 			current.Children = append(current.Children, newNode)
 			current = newNode

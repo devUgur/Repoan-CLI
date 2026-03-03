@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/repoan/repoan/internal/model"
 )
 
 func TestScan(t *testing.T) {
@@ -67,7 +69,7 @@ func TestScan(t *testing.T) {
 		}
 
 		// Depth 1 should see dir1 but not its contents
-		var dir1 *FileNode
+		var dir1 *model.FileItem
 		for _, child := range root.Children {
 			if child.Name == "dir1" {
 				dir1 = child
