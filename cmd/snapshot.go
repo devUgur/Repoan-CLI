@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/repoan/repoan/internal/config"
 	"github.com/repoan/repoan/internal/git"
 	"github.com/repoan/repoan/internal/model"
 	"github.com/repoan/repoan/internal/scan"
@@ -35,7 +36,7 @@ var snapshotCmd = &cobra.Command{
 		opts := scan.ScanOptions{
 			Root:             root,
 			RespectGitignore: Cfg.Scan.RespectGitignore,
-			IgnorePatterns:   Cfg.Scan.Ignore,
+			IgnorePatterns:   config.EffectiveIgnorePatterns(Cfg.Scan.Ignore),
 			MaxDepth:         Cfg.Scan.MaxDepth,
 		}
 

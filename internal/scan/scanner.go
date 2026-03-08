@@ -16,6 +16,7 @@ type ScanOptions struct {
 	IgnorePatterns   []string
 	MaxDepth         int
 	RespectGitignore bool
+	DirsOnly         bool
 }
 
 func Scan(opts ScanOptions) (*model.FileItem, error) {
@@ -40,7 +41,7 @@ func Scan(opts ScanOptions) (*model.FileItem, error) {
 
 	rootNode := &model.FileItem{
 		Name:  filepath.Base(rootAbs),
-		Path:  rootAbs,
+		Path:  ".",
 		IsDir: true,
 	}
 
@@ -85,6 +86,11 @@ func Scan(opts ScanOptions) (*model.FileItem, error) {
 			if d.IsDir() {
 				return filepath.SkipDir
 			}
+			return nil
+		}
+
+		// Dirs only mode
+		if opts.DirsOnly && !d.IsDir() {
 			return nil
 		}
 
@@ -144,11 +150,21 @@ func addNode(root *model.FileItem, relPath string, isDir bool, size int64) {
 				ext = filepath.Ext(part)
 			}
 
+			isNodeDir := isDir
+			if i < len(parts)-1 {
+				isNodeDir = true
+			}
+
+			nodeSize := size
+			if i < len(parts)-1 {
+				nodeSize = 0
+			}
+
 			newNode := &model.FileItem{
 				Name:      part,
 				Path:      filepath.Join(current.Path, part),
-				IsDir:     isDir && (i == len(parts)-1),
-				Size:      size,
+				IsDir:     isNodeDir,
+				Size:      nodeSize,
 				Extension: ext,
 			}
 			current.Children = append(current.Children, newNode)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/repoan/repoan/internal/config"
 	"github.com/repoan/repoan/internal/git"
 	"github.com/repoan/repoan/internal/output"
 	"github.com/repoan/repoan/internal/scan"
@@ -16,6 +17,8 @@ var treeMaxDepth int
 var treeIgnore []string
 var treeRespectGitignore bool
 var treeHere bool
+var treeASCII bool
+var treeDirsOnly bool
 
 var treeCmd = &cobra.Command{
 	Use:   "tree [path]",
@@ -40,9 +43,9 @@ var treeCmd = &cobra.Command{
 		}
 
 		// Merge config and flags
-		ignorePatterns := treeIgnore
-		if len(ignorePatterns) == 0 {
-			ignorePatterns = Cfg.Scan.Ignore
+		ignorePatterns := config.EffectiveIgnorePatterns(Cfg.Scan.Ignore)
+		if len(treeIgnore) > 0 {
+			ignorePatterns = config.EffectiveIgnorePatterns(treeIgnore)
 		}
 
 		maxDepth := treeMaxDepth
@@ -61,6 +64,7 @@ var treeCmd = &cobra.Command{
 			IgnorePatterns:   ignorePatterns,
 			MaxDepth:         maxDepth,
 			RespectGitignore: respectGitignore,
+			DirsOnly:         treeDirsOnly,
 		}
 
 		Logger.Debug("scanning directory", "options", opts)
@@ -74,8 +78,19 @@ var treeCmd = &cobra.Command{
 			format = Cfg.Output.DefaultFormat
 		}
 
-		Logger.Debug("formatting output", "format", format)
-		formatted := output.FormatTree(tree, format)
+		useASCII := treeASCII
+		if !cmd.Flags().Changed("ascii") {
+			// Redirects/pipes are typically consumed by tools that expect plain ASCII.
+			if info, statErr := os.Stdout.Stat(); statErr == nil && (info.Mode()&os.ModeCharDevice) == 0 {
+				useASCII = true
+			}
+		}
+
+		Logger.Debug("formatting output", "format", format, "ascii", useASCII)
+		formatted := output.FormatTree(tree, output.TreeOptions{
+			Format: format,
+			ASCII:  useASCII,
+		})
 
 		outputFile := treeOut
 		if outputFile == "" {
@@ -103,6 +118,8 @@ func init() {
 	treeCmd.Flags().StringSliceVarP(&treeIgnore, "ignore", "i", []string{}, "Patterns to ignore")
 	treeCmd.Flags().BoolVar(&treeRespectGitignore, "respect-gitignore", true, "Respect .gitignore files")
 	treeCmd.Flags().BoolVar(&treeHere, "here", false, "Start scanning from current directory instead of git root")
+	treeCmd.Flags().BoolVar(&treeASCII, "ascii", false, "Use ASCII characters for tree (useful for file redirection)")
+	treeCmd.Flags().BoolVar(&treeDirsOnly, "dirs-only", false, "Only show directories in tree")
 
 	rootCmd.AddCommand(treeCmd)
 }

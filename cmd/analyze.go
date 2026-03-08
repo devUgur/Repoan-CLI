@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/repoan/repoan/internal/analyze"
+	"github.com/repoan/repoan/internal/config"
 	"github.com/repoan/repoan/internal/git"
 	"github.com/repoan/repoan/internal/model"
 	"github.com/repoan/repoan/internal/output"
@@ -39,7 +40,7 @@ var analyzeCmd = &cobra.Command{
 		opts := scan.ScanOptions{
 			Root:             root,
 			RespectGitignore: Cfg.Scan.RespectGitignore,
-			IgnorePatterns:   Cfg.Scan.Ignore,
+			IgnorePatterns:   config.EffectiveIgnorePatterns(Cfg.Scan.Ignore),
 			MaxDepth:         Cfg.Scan.MaxDepth,
 		}
 
@@ -65,6 +66,15 @@ var analyzeCmd = &cobra.Command{
 				analyzers = append(analyzers, &analyze.SecurityAnalyzer{})
 			case "large-files", "hygiene":
 				analyzers = append(analyzers, &analyze.HygieneAnalyzer{MaxFileSize: 1024 * 1024 * 5}) // 5MB
+			case "structure":
+				analyzers = append(analyzers, &analyze.StructureAnalyzer{
+					RepoRoot:            root,
+					TopTokens:           Cfg.Analysis.Structure.TopTokens,
+					IncludeTests:        Cfg.Analysis.Structure.IncludeTests,
+					InstabilityHigh:     Cfg.Analysis.Structure.InstabilityHigh,
+					ClusterCouplingHigh: Cfg.Analysis.Structure.ClusterCouplingHigh,
+					ClusterBoundaryLow:  Cfg.Analysis.Structure.ClusterBoundaryLow,
+				})
 			}
 		}
 
@@ -73,10 +83,18 @@ var analyzeCmd = &cobra.Command{
 			analyzers = []analyze.Analyzer{
 				&analyze.SecurityAnalyzer{},
 				&analyze.HygieneAnalyzer{MaxFileSize: 1024 * 1024 * 5},
+				&analyze.StructureAnalyzer{
+					RepoRoot:            root,
+					TopTokens:           Cfg.Analysis.Structure.TopTokens,
+					IncludeTests:        Cfg.Analysis.Structure.IncludeTests,
+					InstabilityHigh:     Cfg.Analysis.Structure.InstabilityHigh,
+					ClusterCouplingHigh: Cfg.Analysis.Structure.ClusterCouplingHigh,
+					ClusterBoundaryLow:  Cfg.Analysis.Structure.ClusterBoundaryLow,
+				},
 			}
 		}
 
-		var allFindings []model.Finding
+		allFindings := make([]model.Finding, 0)
 		var findingsMutex sync.Mutex
 		var wg sync.WaitGroup
 		var errs []error

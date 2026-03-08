@@ -108,6 +108,15 @@ func FormatSarif(findings []model.Finding, toolName, toolVersion string) (string
 			"fingerprint": f.Fingerprint,
 			"generatedAt": time.Now().UTC().Format(time.RFC3339),
 		}
+		if f.Evidence != "" {
+			props["evidence"] = f.Evidence
+		}
+		if len(f.Tags) > 0 {
+			props["tags"] = f.Tags
+		}
+		for k, v := range f.Props {
+			props[k] = v
+		}
 
 		results = append(results, sarifResult{
 			RuleID: f.RuleID,

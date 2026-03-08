@@ -51,11 +51,17 @@ repoan init
 # Standard tree view (respects .gitignore)
 repoan tree
 
+# Clean structure for docs (directories only)
+repoan tree --dirs-only
+
 # As Markdown for documentation
 repoan tree --format md
 
 # Limited depth
 repoan tree --max-depth 2
+
+# Redirect to file (ASCII is auto-enabled when redirected)
+repoan tree --dirs-only > structure.txt
 ```
 
 ### Create Repository Snapshot
@@ -71,6 +77,32 @@ repoan analyze
 # Export for GitHub Code Scanning (SARIF)
 repoan analyze --format sarif --out results.sarif
 ```
+
+### Analyze Repository Structure
+```bash
+# Human-readable architecture summary
+repoan structure
+
+# Machine-readable report
+repoan structure --format json --out structure-report.json
+
+# JSON report with raw file-level dependency traces (debug)
+repoan structure --format json --raw-dependencies --raw-dependencies-limit 500 --out structure-debug.json
+
+# Show only unresolved dependency traces for resolver triage
+repoan structure --format json --raw-dependencies --raw-dependencies-only-unresolved --out unresolved-debug.json
+
+# Focus on uncertain external dependencies only
+repoan structure --format json --raw-dependencies --raw-dependencies-only-external --raw-dependencies-min-confidence 0.4 --out external-low-confidence-debug.json
+
+# Dependency graph for docs
+repoan structure --format mermaid --out deps.mmd
+
+# Cluster-level dependency graph
+repoan structure --format mermaid-cluster --out deps-cluster.mmd
+```
+
+`--raw-dependencies` adds a `raw_dependencies` section in JSON output so you can inspect resolver decisions per import. Use `--raw-dependencies-only-unresolved`, `--raw-dependencies-only-external`, and `--raw-dependencies-min-confidence` to compose targeted debug views.
 
 ---
 
@@ -91,7 +123,14 @@ analysis:
   enabled_rules:
     - "security"
     - "hygiene"
+    - "structure"
   fail_on: "high"
+  structure:
+    top_tokens: 25
+    include_tests: false
+    instability_high: 0.85
+    cluster_coupling_high: 0.85
+    cluster_boundary_low: 0.20
 output:
   dir: ".repoan/reports"
   default_format: "md"
